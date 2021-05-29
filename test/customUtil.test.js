@@ -1,9 +1,6 @@
-var should = require('chai').should()
-  , assert = require('chai').assert
-  , customUtils = require('../lib/customUtils')
-  , fs = require('fs')
-  ;
-
+import {should} from 'chai';
+import customUtils from '../lib/customUtils.js';
+should();
 
 describe('customUtils', function () {
 

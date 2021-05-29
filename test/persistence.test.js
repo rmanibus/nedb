@@ -1,18 +1,17 @@
-var should = require('chai').should()
-  , assert = require('chai').assert
-  , testDb = 'workspace/test.db'
-  , fs = require('fs')
-  , path = require('path')
-  , _ = require('underscore')
-  , async = require('async')
-  , model = require('../lib/model')
-  , customUtils = require('../lib/customUtils')
-  , Datastore = require('../lib/datastore')
-  , Persistence = require('../lib/persistence')
-  , storage = require('../lib/storage')
-  , child_process = require('child_process')
-;
 
+import fs from'fs';
+import path from 'path';
+import _ from 'underscore';
+import {assert, should} from 'chai';
+import Datastore from '../lib/datastore.js';
+import Persistence from '../lib/persistence.js';
+import model from '../lib/model.js';
+import storage from "../lib/storage.js";
+import async from 'async';
+import child_process from 'child_process';
+should();
+
+const testDb = 'workspace/test.db';
 
 describe('Persistence', function () {
   var d;
@@ -849,18 +848,16 @@ describe('Persistence', function () {
       fs.writeFileSync('workspace/lac.db', toWrite, 'utf8');
 
       var datafileLength = fs.readFileSync('workspace/lac.db', 'utf8').length;
-
-      // Loading it in a separate process that we will crash before finishing the loadDatabase
       child_process.fork('test_lac/loadAndCrash.test').on('exit', function (code) {
         code.should.equal(1);   // See test_lac/loadAndCrash.test.js
-
+        
         fs.existsSync('workspace/lac.db').should.equal(true);
         fs.existsSync('workspace/lac.db~').should.equal(true);
         fs.readFileSync('workspace/lac.db', 'utf8').length.should.equal(datafileLength);
         fs.readFileSync('workspace/lac.db~', 'utf8').length.should.equal(5000);
 
         // Reload database without a crash, check that no data was lost and fs state is clean (no temp file)
-        var db = new Datastore({ filename: 'workspace/lac.db' });
+        const db = new Datastore({ filename: 'workspace/lac.db' });
         db.loadDatabase(function (err) {
           assert.isNull(err);
 
