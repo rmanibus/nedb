@@ -1,20 +1,17 @@
-import * as fs from "fs";
-import child_process from "child_process";
+import fs from "fs";
 import async from "async";
 import Nedb from "../lib/datastore.js";
 
-var db = new Nedb({ filename: "./workspace/openfds.db", autoload: true }),
-  N = 64,
-  i,
-  fds;
+const db = new Nedb({ filename: "./workspace/openfds.db", autoload: true });
+const N = 64;
+let i;
+let fds;
 
 function multipleOpen(filename, N, callback) {
   async.whilst(
-    function () {
-      return i < N;
-    },
-    function (cb) {
-      fs.open(filename, "r", function (err, fd) {
+    () => i < N,
+    (cb) => {
+      fs.open(filename, "r", (err, fd) => {
         i += 1;
         if (fd) {
           fds.push(fd);
@@ -28,53 +25,50 @@ function multipleOpen(filename, N, callback) {
 
 async.waterfall([
   // Check that ulimit has been set to the correct value
-  function (cb) {
+  (cb) => {
     i = 0;
     fds = [];
-    multipleOpen("./test_lac/openFdsTestFile", 2 * N + 1, function (err) {
+    multipleOpen("./test_lac/openFdsTestFile", 2 * N + 1, (err) => {
       if (!err) {
         console.log("No error occured while opening a file too many times");
       }
-      fds.forEach(function (fd) {
+      fds.forEach((fd) => {
         fs.closeSync(fd);
       });
       return cb();
     });
   },
-  function (cb) {
+  (cb) => {
     i = 0;
     fds = [];
-    multipleOpen("./test_lac/openFdsTestFile2", N, function (err) {
+    multipleOpen("./test_lac/openFdsTestFile2", N, (err) => {
       if (err) {
         console.log(
-          "An unexpected error occured when opening file not too many times: " +
-            err
+          `An unexpected error occured when opening file not too many times: ${err}`
         );
       }
-      fds.forEach(function (fd) {
+      fds.forEach((fd) => {
         fs.closeSync(fd);
       });
       return cb();
     });
   },
   // Then actually test NeDB persistence
-  function () {
-    db.remove({}, { multi: true }, function (err) {
+  () => {
+    db.remove({}, { multi: true }, (err) => {
       if (err) {
         console.log(err);
       }
-      db.insert({ hello: "world" }, function (err) {
+      db.insert({ hello: "world" }, (err) => {
         if (err) {
           console.log(err);
         }
 
         i = 0;
         async.whilst(
-          function () {
-            return i < 2 * N + 1;
-          },
-          function (cb) {
-            db.persistence.persistCachedDatabase(function (err) {
+          () => i < 2 * N + 1,
+          (cb) => {
+            db.persistence.persistCachedDatabase((err) => {
               if (err) {
                 return cb(err);
               }
@@ -82,10 +76,10 @@ async.waterfall([
               return cb();
             });
           },
-          function (err) {
+          (err) => {
             if (err) {
               console.log(
-                "Got unexpected error during one peresistence operation: " + err
+                `Got unexpected error during one peresistence operation: ${err}`
               );
             }
           }

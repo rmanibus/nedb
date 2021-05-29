@@ -6,23 +6,24 @@ import { assert, should } from "chai";
 import Datastore from "../lib/datastore.js";
 import Persistence from "../lib/persistence.js";
 import Cursor from "../lib/cursor.js";
+
 should();
 
 const testDb = "workspace/test.db";
 
-describe("Cursor", function () {
-  var d;
+describe("Cursor", () => {
+  let d;
 
-  beforeEach(function (done) {
+  beforeEach((done) => {
     d = new Datastore({ filename: testDb });
     d.filename.should.equal(testDb);
     d.inMemoryOnly.should.equal(false);
 
     async.waterfall(
       [
-        function (cb) {
-          Persistence.ensureDirectoryExists(path.dirname(testDb), function () {
-            fs.exists(testDb, function (exists) {
+        (cb) => {
+          Persistence.ensureDirectoryExists(path.dirname(testDb), () => {
+            fs.exists(testDb, (exists) => {
               if (exists) {
                 fs.unlink(testDb, cb);
               } else {
@@ -31,8 +32,8 @@ describe("Cursor", function () {
             });
           });
         },
-        function (cb) {
-          d.loadDatabase(function (err) {
+        (cb) => {
+          d.loadDatabase((err) => {
             assert.isNull(err);
             d.getAllData().length.should.equal(0);
             return cb();
@@ -43,84 +44,56 @@ describe("Cursor", function () {
     );
   });
 
-  describe("Without sorting", function () {
-    beforeEach(function (done) {
-      d.insert({ age: 5 }, function (err) {
-        d.insert({ age: 57 }, function (err) {
-          d.insert({ age: 52 }, function (err) {
-            d.insert({ age: 23 }, function (err) {
-              d.insert({ age: 89 }, function (err) {
-                return done();
-              });
+  describe("Without sorting", () => {
+    beforeEach((done) => {
+      d.insert({ age: 5 }, (err) => {
+        d.insert({ age: 57 }, (err) => {
+          d.insert({ age: 52 }, (err) => {
+            d.insert({ age: 23 }, (err) => {
+              d.insert({ age: 89 }, (err) => done());
             });
           });
         });
       });
     });
 
-    it("Without query, an empty query or a simple query and no skip or limit", function (done) {
+    it("Without query, an empty query or a simple query and no skip or limit", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
-            cursor.exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d);
+            cursor.exec((err, docs) => {
               assert.isNull(err);
               docs.length.should.equal(5);
-              _.filter(docs, function (doc) {
-                return doc.age === 5;
-              })[0].age.should.equal(5);
-              _.filter(docs, function (doc) {
-                return doc.age === 57;
-              })[0].age.should.equal(57);
-              _.filter(docs, function (doc) {
-                return doc.age === 52;
-              })[0].age.should.equal(52);
-              _.filter(docs, function (doc) {
-                return doc.age === 23;
-              })[0].age.should.equal(23);
-              _.filter(docs, function (doc) {
-                return doc.age === 89;
-              })[0].age.should.equal(89);
+              _.filter(docs, (doc) => doc.age === 5)[0].age.should.equal(5);
+              _.filter(docs, (doc) => doc.age === 57)[0].age.should.equal(57);
+              _.filter(docs, (doc) => doc.age === 52)[0].age.should.equal(52);
+              _.filter(docs, (doc) => doc.age === 23)[0].age.should.equal(23);
+              _.filter(docs, (doc) => doc.age === 89)[0].age.should.equal(89);
               cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.exec((err, docs) => {
               assert.isNull(err);
               docs.length.should.equal(5);
-              _.filter(docs, function (doc) {
-                return doc.age === 5;
-              })[0].age.should.equal(5);
-              _.filter(docs, function (doc) {
-                return doc.age === 57;
-              })[0].age.should.equal(57);
-              _.filter(docs, function (doc) {
-                return doc.age === 52;
-              })[0].age.should.equal(52);
-              _.filter(docs, function (doc) {
-                return doc.age === 23;
-              })[0].age.should.equal(23);
-              _.filter(docs, function (doc) {
-                return doc.age === 89;
-              })[0].age.should.equal(89);
+              _.filter(docs, (doc) => doc.age === 5)[0].age.should.equal(5);
+              _.filter(docs, (doc) => doc.age === 57)[0].age.should.equal(57);
+              _.filter(docs, (doc) => doc.age === 52)[0].age.should.equal(52);
+              _.filter(docs, (doc) => doc.age === 23)[0].age.should.equal(23);
+              _.filter(docs, (doc) => doc.age === 89)[0].age.should.equal(89);
               cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, { age: { $gt: 23 } });
-            cursor.exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, { age: { $gt: 23 } });
+            cursor.exec((err, docs) => {
               assert.isNull(err);
               docs.length.should.equal(3);
-              _.filter(docs, function (doc) {
-                return doc.age === 57;
-              })[0].age.should.equal(57);
-              _.filter(docs, function (doc) {
-                return doc.age === 52;
-              })[0].age.should.equal(52);
-              _.filter(docs, function (doc) {
-                return doc.age === 89;
-              })[0].age.should.equal(89);
+              _.filter(docs, (doc) => doc.age === 57)[0].age.should.equal(57);
+              _.filter(docs, (doc) => doc.age === 52)[0].age.should.equal(52);
+              _.filter(docs, (doc) => doc.age === 89)[0].age.should.equal(89);
               cb();
             });
           },
@@ -129,17 +102,15 @@ describe("Cursor", function () {
       );
     });
 
-    it("With an empty collection", function (done) {
+    it("With an empty collection", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
-              return cb(err);
-            });
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => cb(err));
           },
-          function (cb) {
-            var cursor = new Cursor(d);
-            cursor.exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d);
+            cursor.exec((err, docs) => {
               assert.isNull(err);
               docs.length.should.equal(0);
               cb();
@@ -150,10 +121,10 @@ describe("Cursor", function () {
       );
     });
 
-    it("With a limit", function (done) {
-      var cursor = new Cursor(d);
+    it("With a limit", (done) => {
+      const cursor = new Cursor(d);
       cursor.limit(3);
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNull(err);
         docs.length.should.equal(3);
         // No way to predict which results are returned of course ...
@@ -161,9 +132,9 @@ describe("Cursor", function () {
       });
     });
 
-    it("With a skip", function (done) {
-      var cursor = new Cursor(d);
-      cursor.skip(2).exec(function (err, docs) {
+    it("With a skip", (done) => {
+      const cursor = new Cursor(d);
+      cursor.skip(2).exec((err, docs) => {
         assert.isNull(err);
         docs.length.should.equal(3);
         // No way to predict which results are returned of course ...
@@ -171,10 +142,10 @@ describe("Cursor", function () {
       });
     });
 
-    it("With a limit and a skip and method chaining", function (done) {
-      var cursor = new Cursor(d);
+    it("With a limit and a skip and method chaining", (done) => {
+      const cursor = new Cursor(d);
       cursor.limit(4).skip(3); // Only way to know that the right number of results was skipped is if limit + skip > number of results
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNull(err);
         docs.length.should.equal(2);
         // No way to predict which results are returned of course ...
@@ -183,28 +154,27 @@ describe("Cursor", function () {
     });
   }); // ===== End of 'Without sorting' =====
 
-  describe("Sorting of the results", function () {
-    beforeEach(function (done) {
+  describe("Sorting of the results", () => {
+    beforeEach((done) => {
       // We don't know the order in which docs wil be inserted but we ensure correctness by testing both sort orders
-      d.insert({ age: 5 }, function (err) {
-        d.insert({ age: 57 }, function (err) {
-          d.insert({ age: 52 }, function (err) {
-            d.insert({ age: 23 }, function (err) {
-              d.insert({ age: 89 }, function (err) {
-                return done();
-              });
+      d.insert({ age: 5 }, (err) => {
+        d.insert({ age: 57 }, (err) => {
+          d.insert({ age: 52 }, (err) => {
+            d.insert({ age: 23 }, (err) => {
+              d.insert({ age: 89 }, (err) => done());
             });
           });
         });
       });
     });
 
-    it("Using one sort", function (done) {
-      var cursor, i;
+    it("Using one sort", (done) => {
+      let cursor;
+      let i;
 
       cursor = new Cursor(d, {});
       cursor.sort({ age: 1 });
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNull(err);
         // Results are in ascending order
         for (i = 0; i < docs.length - 1; i += 1) {
@@ -212,7 +182,7 @@ describe("Cursor", function () {
         }
 
         cursor.sort({ age: -1 });
-        cursor.exec(function (err, docs) {
+        cursor.exec((err, docs) => {
           assert.isNull(err);
           // Results are in descending order
           for (i = 0; i < docs.length - 1; i += 1) {
@@ -224,11 +194,11 @@ describe("Cursor", function () {
       });
     });
 
-    it("Sorting strings with custom string comparison function", function (done) {
-      var db = new Datastore({
+    it("Sorting strings with custom string comparison function", (done) => {
+      const db = new Datastore({
         inMemoryOnly: true,
         autoload: true,
-        compareStrings: function (a, b) {
+        compareStrings(a, b) {
           return a.length - b.length;
         },
       });
@@ -239,7 +209,7 @@ describe("Cursor", function () {
 
       db.find({})
         .sort({ name: 1 })
-        .exec(function (err, docs) {
+        .exec((err, docs) => {
           _.pluck(docs, "name")[0].should.equal("zulu");
           _.pluck(docs, "name")[1].should.equal("alpha");
           _.pluck(docs, "name")[2].should.equal("charlie");
@@ -247,7 +217,7 @@ describe("Cursor", function () {
           delete db.compareStrings;
           db.find({})
             .sort({ name: 1 })
-            .exec(function (err, docs) {
+            .exec((err, docs) => {
               _.pluck(docs, "name")[0].should.equal("alpha");
               _.pluck(docs, "name")[1].should.equal("charlie");
               _.pluck(docs, "name")[2].should.equal("zulu");
@@ -257,18 +227,16 @@ describe("Cursor", function () {
         });
     });
 
-    it("With an empty collection", function (done) {
+    it("With an empty collection", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
-              return cb(err);
-            });
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => cb(err));
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor.sort({ age: 1 });
-            cursor.exec(function (err, docs) {
+            cursor.exec((err, docs) => {
               assert.isNull(err);
               docs.length.should.equal(0);
               cb();
@@ -279,13 +247,13 @@ describe("Cursor", function () {
       );
     });
 
-    it("Ability to chain sorting and exec", function (done) {
-      var i;
+    it("Ability to chain sorting and exec", (done) => {
+      let i;
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
-            cursor.sort({ age: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d);
+            cursor.sort({ age: 1 }).exec((err, docs) => {
               assert.isNull(err);
               // Results are in ascending order
               for (i = 0; i < docs.length - 1; i += 1) {
@@ -294,9 +262,9 @@ describe("Cursor", function () {
               cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
-            cursor.sort({ age: -1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d);
+            cursor.sort({ age: -1 }).exec((err, docs) => {
               assert.isNull(err);
               // Results are in descending order
               for (i = 0; i < docs.length - 1; i += 1) {
@@ -310,16 +278,15 @@ describe("Cursor", function () {
       );
     });
 
-    it("Using limit and sort", function (done) {
-      var i;
+    it("Using limit and sort", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(3)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(3);
                 docs[0].age.should.equal(5);
@@ -328,12 +295,12 @@ describe("Cursor", function () {
                 cb();
               });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: -1 })
               .limit(2)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(2);
                 docs[0].age.should.equal(89);
@@ -346,16 +313,15 @@ describe("Cursor", function () {
       );
     });
 
-    it("Using a limit higher than total number of docs shouldnt cause an error", function (done) {
-      var i;
+    it("Using a limit higher than total number of docs shouldnt cause an error", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(7)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(5);
                 docs[0].age.should.equal(5);
@@ -371,30 +337,29 @@ describe("Cursor", function () {
       );
     });
 
-    it("Using limit and skip with sort", function (done) {
-      var i;
+    it("Using limit and skip with sort", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(1)
               .skip(2)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(1);
                 docs[0].age.should.equal(52);
                 cb();
               });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(3)
               .skip(1)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(3);
                 docs[0].age.should.equal(23);
@@ -403,13 +368,13 @@ describe("Cursor", function () {
                 cb();
               });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: -1 })
               .limit(2)
               .skip(2)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(2);
                 docs[0].age.should.equal(52);
@@ -422,17 +387,16 @@ describe("Cursor", function () {
       );
     });
 
-    it("Using too big a limit and a skip with sort", function (done) {
-      var i;
+    it("Using too big a limit and a skip with sort", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(8)
               .skip(2)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(3);
                 docs[0].age.should.equal(52);
@@ -446,51 +410,50 @@ describe("Cursor", function () {
       );
     });
 
-    it("Using too big a skip with sort should return no result", function (done) {
-      var i;
+    it("Using too big a skip with sort should return no result", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .skip(5)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(0);
                 cb();
               });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .skip(7)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(0);
                 cb();
               });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(3)
               .skip(7)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(0);
                 cb();
               });
           },
-          function (cb) {
-            var cursor = new Cursor(d);
+          (cb) => {
+            const cursor = new Cursor(d);
             cursor
               .sort({ age: 1 })
               .limit(6)
               .skip(7)
-              .exec(function (err, docs) {
+              .exec((err, docs) => {
                 assert.isNull(err);
                 docs.length.should.equal(0);
                 cb();
@@ -501,27 +464,25 @@ describe("Cursor", function () {
       );
     });
 
-    it("Sorting strings", function (done) {
+    it("Sorting strings", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => {
               if (err) {
                 return cb(err);
               }
 
-              d.insert({ name: "jako" }, function () {
-                d.insert({ name: "jakeb" }, function () {
-                  d.insert({ name: "sue" }, function () {
-                    return cb();
-                  });
+              return d.insert({ name: "jako" }, () => {
+                d.insert({ name: "jakeb" }, () => {
+                  d.insert({ name: "sue" }, () => cb());
                 });
               });
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ name: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ name: 1 }).exec((err, docs) => {
               docs.length.should.equal(3);
               docs[0].name.should.equal("jakeb");
               docs[1].name.should.equal("jako");
@@ -529,9 +490,9 @@ describe("Cursor", function () {
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ name: -1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ name: -1 }).exec((err, docs) => {
               docs.length.should.equal(3);
               docs[0].name.should.equal("sue");
               docs[1].name.should.equal("jako");
@@ -544,41 +505,40 @@ describe("Cursor", function () {
       );
     });
 
-    it("Sorting nested fields with dates", function (done) {
-      var doc1, doc2, doc3;
+    it("Sorting nested fields with dates", (done) => {
+      let doc1;
+      let doc2;
+      let doc3;
 
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => {
               if (err) {
                 return cb(err);
               }
 
-              d.insert(
-                { event: { recorded: new Date(400) } },
-                function (err, _doc1) {
-                  doc1 = _doc1;
-                  d.insert(
-                    { event: { recorded: new Date(60000) } },
-                    function (err, _doc2) {
-                      doc2 = _doc2;
-                      d.insert(
-                        { event: { recorded: new Date(32) } },
-                        function (err, _doc3) {
-                          doc3 = _doc3;
-                          return cb();
-                        }
-                      );
-                    }
-                  );
-                }
-              );
+              d.insert({ event: { recorded: new Date(400) } }, (err, _doc1) => {
+                doc1 = _doc1;
+                d.insert(
+                  { event: { recorded: new Date(60000) } },
+                  (err, _doc2) => {
+                    doc2 = _doc2;
+                    d.insert(
+                      { event: { recorded: new Date(32) } },
+                      (err, _doc3) => {
+                        doc3 = _doc3;
+                        return cb();
+                      }
+                    );
+                  }
+                );
+              });
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ "event.recorded": 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ "event.recorded": 1 }).exec((err, docs) => {
               docs.length.should.equal(3);
               docs[0]._id.should.equal(doc3._id);
               docs[1]._id.should.equal(doc1._id);
@@ -586,9 +546,9 @@ describe("Cursor", function () {
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ "event.recorded": -1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ "event.recorded": -1 }).exec((err, docs) => {
               docs.length.should.equal(3);
               docs[0]._id.should.equal(doc2._id);
               docs[1]._id.should.equal(doc1._id);
@@ -601,29 +561,27 @@ describe("Cursor", function () {
       );
     });
 
-    it("Sorting when some fields are undefined", function (done) {
+    it("Sorting when some fields are undefined", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => {
               if (err) {
                 return cb(err);
               }
 
-              d.insert({ name: "jako", other: 2 }, function () {
-                d.insert({ name: "jakeb", other: 3 }, function () {
-                  d.insert({ name: "sue" }, function () {
-                    d.insert({ name: "henry", other: 4 }, function () {
-                      return cb();
-                    });
+              d.insert({ name: "jako", other: 2 }, () => {
+                d.insert({ name: "jakeb", other: 3 }, () => {
+                  d.insert({ name: "sue" }, () => {
+                    d.insert({ name: "henry", other: 4 }, () => cb());
                   });
                 });
               });
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ other: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ other: 1 }).exec((err, docs) => {
               docs.length.should.equal(4);
               docs[0].name.should.equal("sue");
               assert.isUndefined(docs[0].other);
@@ -636,11 +594,11 @@ describe("Cursor", function () {
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {
+          (cb) => {
+            const cursor = new Cursor(d, {
               name: { $in: ["suzy", "jakeb", "jako"] },
             });
-            cursor.sort({ other: -1 }).exec(function (err, docs) {
+            cursor.sort({ other: -1 }).exec((err, docs) => {
               docs.length.should.equal(2);
               docs[0].name.should.equal("jakeb");
               docs[0].other.should.equal(3);
@@ -654,36 +612,34 @@ describe("Cursor", function () {
       );
     });
 
-    it("Sorting when all fields are undefined", function (done) {
+    it("Sorting when all fields are undefined", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => {
               if (err) {
                 return cb(err);
               }
 
-              d.insert({ name: "jako" }, function () {
-                d.insert({ name: "jakeb" }, function () {
-                  d.insert({ name: "sue" }, function () {
-                    return cb();
-                  });
+              d.insert({ name: "jako" }, () => {
+                d.insert({ name: "jakeb" }, () => {
+                  d.insert({ name: "sue" }, () => cb());
                 });
               });
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ other: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ other: 1 }).exec((err, docs) => {
               docs.length.should.equal(3);
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {
+          (cb) => {
+            const cursor = new Cursor(d, {
               name: { $in: ["sue", "jakeb", "jakob"] },
             });
-            cursor.sort({ other: -1 }).exec(function (err, docs) {
+            cursor.sort({ other: -1 }).exec((err, docs) => {
               docs.length.should.equal(2);
               return cb();
             });
@@ -693,31 +649,29 @@ describe("Cursor", function () {
       );
     });
 
-    it("Multiple consecutive sorts", function (done) {
+    it("Multiple consecutive sorts", (done) => {
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => {
               if (err) {
                 return cb(err);
               }
 
-              d.insert({ name: "jako", age: 43, nid: 1 }, function () {
-                d.insert({ name: "jakeb", age: 43, nid: 2 }, function () {
-                  d.insert({ name: "sue", age: 12, nid: 3 }, function () {
-                    d.insert({ name: "zoe", age: 23, nid: 4 }, function () {
-                      d.insert({ name: "jako", age: 35, nid: 5 }, function () {
-                        return cb();
-                      });
+              d.insert({ name: "jako", age: 43, nid: 1 }, () => {
+                d.insert({ name: "jakeb", age: 43, nid: 2 }, () => {
+                  d.insert({ name: "sue", age: 12, nid: 3 }, () => {
+                    d.insert({ name: "zoe", age: 23, nid: 4 }, () => {
+                      d.insert({ name: "jako", age: 35, nid: 5 }, () => cb());
                     });
                   });
                 });
               });
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ name: 1, age: -1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ name: 1, age: -1 }).exec((err, docs) => {
               docs.length.should.equal(5);
 
               docs[0].nid.should.equal(2);
@@ -728,9 +682,9 @@ describe("Cursor", function () {
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ name: 1, age: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ name: 1, age: 1 }).exec((err, docs) => {
               docs.length.should.equal(5);
 
               docs[0].nid.should.equal(2);
@@ -741,9 +695,9 @@ describe("Cursor", function () {
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ age: 1, name: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ age: 1, name: 1 }).exec((err, docs) => {
               docs.length.should.equal(5);
 
               docs[0].nid.should.equal(3);
@@ -754,9 +708,9 @@ describe("Cursor", function () {
               return cb();
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ age: 1, name: -1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ age: 1, name: -1 }).exec((err, docs) => {
               docs.length.should.equal(5);
 
               docs[0].nid.should.equal(3);
@@ -772,16 +726,16 @@ describe("Cursor", function () {
       );
     });
 
-    it("Similar data, multiple consecutive sorts", function (done) {
-      var i,
-        j,
-        id,
-        companies = ["acme", "milkman", "zoinks"],
-        entities = [];
+    it("Similar data, multiple consecutive sorts", (done) => {
+      let i;
+      let j;
+      let id;
+      const companies = ["acme", "milkman", "zoinks"];
+      const entities = [];
       async.waterfall(
         [
-          function (cb) {
-            d.remove({}, { multi: true }, function (err) {
+          (cb) => {
+            d.remove({}, { multi: true }, (err) => {
               if (err) {
                 return cb(err);
               }
@@ -800,23 +754,21 @@ describe("Cursor", function () {
 
               async.each(
                 entities,
-                function (entity, callback) {
-                  d.insert(entity, function () {
+                (entity, callback) => {
+                  d.insert(entity, () => {
                     callback();
                   });
                 },
-                function (err) {
-                  return cb();
-                }
+                (err) => cb()
               );
             });
           },
-          function (cb) {
-            var cursor = new Cursor(d, {});
-            cursor.sort({ company: 1, cost: 1 }).exec(function (err, docs) {
+          (cb) => {
+            const cursor = new Cursor(d, {});
+            cursor.sort({ company: 1, cost: 1 }).exec((err, docs) => {
               docs.length.should.equal(60);
 
-              for (var i = 0; i < docs.length; i++) {
+              for (let i = 0; i < docs.length; i++) {
                 docs[i].nid.should.equal(i + 1);
               }
               return cb();
@@ -828,10 +780,14 @@ describe("Cursor", function () {
     });
   }); // ===== End of 'Sorting' =====
 
-  describe("Projections", function () {
-    var doc1, doc2, doc3, doc4, doc0;
+  describe("Projections", () => {
+    let doc1;
+    let doc2;
+    let doc3;
+    let doc4;
+    let doc0;
 
-    beforeEach(function (done) {
+    beforeEach((done) => {
       // We don't know the order in which docs wil be inserted but we ensure correctness by testing both sort orders
       d.insert(
         {
@@ -840,7 +796,7 @@ describe("Cursor", function () {
           planet: "B",
           toys: { bebe: true, ballon: "much" },
         },
-        function (err, _doc0) {
+        (err, _doc0) => {
           doc0 = _doc0;
           d.insert(
             {
@@ -849,7 +805,7 @@ describe("Cursor", function () {
               planet: "R",
               toys: { ballon: "yeah", bebe: false },
             },
-            function (err, _doc1) {
+            (err, _doc1) => {
               doc1 = _doc1;
               d.insert(
                 {
@@ -858,19 +814,16 @@ describe("Cursor", function () {
                   planet: "C",
                   toys: { bebe: "kind of" },
                 },
-                function (err, _doc2) {
+                (err, _doc2) => {
                   doc2 = _doc2;
                   d.insert(
                     { age: 23, name: "LM", planet: "S" },
-                    function (err, _doc3) {
+                    (err, _doc3) => {
                       doc3 = _doc3;
-                      d.insert(
-                        { age: 89, planet: "Earth" },
-                        function (err, _doc4) {
-                          doc4 = _doc4;
-                          return done();
-                        }
-                      );
+                      d.insert({ age: 89, planet: "Earth" }, (err, _doc4) => {
+                        doc4 = _doc4;
+                        return done();
+                      });
                     }
                   );
                 }
@@ -881,10 +834,10 @@ describe("Cursor", function () {
       );
     });
 
-    it("Takes all results if no projection or empty object given", function (done) {
-      var cursor = new Cursor(d, {});
+    it("Takes all results if no projection or empty object given", (done) => {
+      const cursor = new Cursor(d, {});
       cursor.sort({ age: 1 }); // For easier finding
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNull(err);
         docs.length.should.equal(5);
         assert.deepEqual(docs[0], doc0);
@@ -894,7 +847,7 @@ describe("Cursor", function () {
         assert.deepEqual(docs[4], doc4);
 
         cursor.projection({});
-        cursor.exec(function (err, docs) {
+        cursor.exec((err, docs) => {
           assert.isNull(err);
           docs.length.should.equal(5);
           assert.deepEqual(docs[0], doc0);
@@ -908,11 +861,11 @@ describe("Cursor", function () {
       });
     });
 
-    it("Can take only the expected fields", function (done) {
-      var cursor = new Cursor(d, {});
+    it("Can take only the expected fields", (done) => {
+      const cursor = new Cursor(d, {});
       cursor.sort({ age: 1 }); // For easier finding
       cursor.projection({ age: 1, name: 1 });
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNull(err);
         docs.length.should.equal(5);
         // Takes the _id by default
@@ -923,7 +876,7 @@ describe("Cursor", function () {
         assert.deepEqual(docs[4], { age: 89, _id: doc4._id }); // No problems if one field to take doesn't exist
 
         cursor.projection({ age: 1, name: 1, _id: 0 });
-        cursor.exec(function (err, docs) {
+        cursor.exec((err, docs) => {
           assert.isNull(err);
           docs.length.should.equal(5);
           assert.deepEqual(docs[0], { age: 5, name: "Jo" });
@@ -937,11 +890,11 @@ describe("Cursor", function () {
       });
     });
 
-    it("Can omit only the expected fields", function (done) {
-      var cursor = new Cursor(d, {});
+    it("Can omit only the expected fields", (done) => {
+      const cursor = new Cursor(d, {});
       cursor.sort({ age: 1 }); // For easier finding
       cursor.projection({ age: 0, name: 0 });
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNull(err);
         docs.length.should.equal(5);
         // Takes the _id by default
@@ -964,7 +917,7 @@ describe("Cursor", function () {
         assert.deepEqual(docs[4], { planet: "Earth", _id: doc4._id });
 
         cursor.projection({ age: 0, name: 0, _id: 0 });
-        cursor.exec(function (err, docs) {
+        cursor.exec((err, docs) => {
           assert.isNull(err);
           docs.length.should.equal(5);
           assert.deepEqual(docs[0], {
@@ -984,16 +937,16 @@ describe("Cursor", function () {
       });
     });
 
-    it("Cannot use both modes except for _id", function (done) {
-      var cursor = new Cursor(d, {});
+    it("Cannot use both modes except for _id", (done) => {
+      const cursor = new Cursor(d, {});
       cursor.sort({ age: 1 }); // For easier finding
       cursor.projection({ age: 1, name: 0 });
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.isNotNull(err);
         assert.isUndefined(docs);
 
         cursor.projection({ age: 1, _id: 0 });
-        cursor.exec(function (err, docs) {
+        cursor.exec((err, docs) => {
           assert.isNull(err);
           assert.deepEqual(docs[0], { age: 5 });
           assert.deepEqual(docs[1], { age: 23 });
@@ -1002,7 +955,7 @@ describe("Cursor", function () {
           assert.deepEqual(docs[4], { age: 89 });
 
           cursor.projection({ age: 0, toys: 0, planet: 0, _id: 1 });
-          cursor.exec(function (err, docs) {
+          cursor.exec((err, docs) => {
             assert.isNull(err);
             assert.deepEqual(docs[0], { name: "Jo", _id: doc0._id });
             assert.deepEqual(docs[1], { name: "LM", _id: doc3._id });
@@ -1016,11 +969,11 @@ describe("Cursor", function () {
       });
     });
 
-    it("Projections on embedded documents - omit type", function (done) {
-      var cursor = new Cursor(d, {});
+    it("Projections on embedded documents - omit type", (done) => {
+      const cursor = new Cursor(d, {});
       cursor.sort({ age: 1 }); // For easier finding
       cursor.projection({ name: 0, planet: 0, "toys.bebe": 0, _id: 0 });
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.deepEqual(docs[0], { age: 5, toys: { ballon: "much" } });
         assert.deepEqual(docs[1], { age: 23 });
         assert.deepEqual(docs[2], { age: 52, toys: {} });
@@ -1031,11 +984,11 @@ describe("Cursor", function () {
       });
     });
 
-    it("Projections on embedded documents - pick type", function (done) {
-      var cursor = new Cursor(d, {});
+    it("Projections on embedded documents - pick type", (done) => {
+      const cursor = new Cursor(d, {});
       cursor.sort({ age: 1 }); // For easier finding
       cursor.projection({ name: 1, "toys.ballon": 1, _id: 0 });
-      cursor.exec(function (err, docs) {
+      cursor.exec((err, docs) => {
         assert.deepEqual(docs[0], { name: "Jo", toys: { ballon: "much" } });
         assert.deepEqual(docs[1], { name: "LM" });
         assert.deepEqual(docs[2], { name: "Grafitti" });

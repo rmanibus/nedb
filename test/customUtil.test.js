@@ -1,10 +1,11 @@
 import { should } from "chai";
 import customUtils from "../lib/customUtils.js";
+
 should();
 
-describe("customUtils", function () {
-  describe("uid", function () {
-    it("Generates a string of the expected length", function () {
+describe("customUtils", () => {
+  describe("uid", () => {
+    it("Generates a string of the expected length", () => {
       customUtils.uid(3).length.should.equal(3);
       customUtils.uid(16).length.should.equal(16);
       customUtils.uid(42).length.should.equal(42);
@@ -12,7 +13,7 @@ describe("customUtils", function () {
     });
 
     // Very small probability of conflict
-    it("Generated uids should not be the same", function () {
+    it("Generated uids should not be the same", () => {
       customUtils.uid(56).should.not.equal(customUtils.uid(56));
     });
   });
