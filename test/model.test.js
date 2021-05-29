@@ -1,14 +1,11 @@
-var model = require('../lib/model')
-  , should = require('chai').should()
-  , assert = require('chai').assert
-  , expect = require('chai').expect
-  , _ = require('underscore')
-  , async = require('async')
-  , util = require('util')
-  , Datastore = require('../lib/datastore')
-  , fs = require('fs')
-  ;
 
+import * as fs from'fs';
+import {assert, expect, should} from 'chai';
+import Datastore from '../lib/datastore.js';
+import model from '../lib/model.js';
+import _ from 'underscore';
+import util from 'util';
+should();
 
 describe('Model', function () {
 

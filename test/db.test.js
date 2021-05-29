@@ -1,17 +1,15 @@
-var should = require('chai').should()
-  , assert = require('chai').assert
-  , testDb = 'workspace/test.db'
-  , fs = require('fs')
-  , path = require('path')
-  , _ = require('underscore')
-  , async = require('async')
-  , model = require('../lib/model')
-  , Datastore = require('../lib/datastore')
-  , Persistence = require('../lib/persistence')
-  , reloadTimeUpperBound = 60;   // In ms, an upper bound for the reload time used to check createdAt and updatedAt
-  ;
 
-
+import fs from'fs';
+import path from 'path';
+import _ from 'underscore';
+import {assert, should} from 'chai';
+import async from 'async';
+import Datastore from '../lib/datastore.js';
+import Persistence from '../lib/persistence.js';
+import model from '../lib/model.js';
+should();
+const testDb = 'workspace/test.db',
+reloadTimeUpperBound = 60;
 describe('Database', function () {
   var d;
 
@@ -2012,31 +2010,32 @@ describe('Database', function () {
                   d.update({ z: "1" }, { $set: { 'yes': 'yep' } }, {}, function () {
                     assert.deepEqual(Object.keys(d.indexes), ['_id']);
 
-                    d.ensureIndex({ fieldName: 'z' });
-                    d.indexes.z.fieldName.should.equal('z');
-                    d.indexes.z.unique.should.equal(false);
-                    d.indexes.z.sparse.should.equal(false);
-                    d.indexes.z.tree.getNumberOfKeys().should.equal(3);
-
-                    // The pointers in the _id and z indexes are the same
-                    d.indexes.z.tree.search('1')[0].should.equal(d.indexes._id.getMatching('aaa')[0]);
-                    d.indexes.z.tree.search('12')[0].should.equal(d.indexes._id.getMatching(newDoc1._id)[0]);
-                    d.indexes.z.tree.search('14')[0].should.equal(d.indexes._id.getMatching(newDoc2._id)[0]);
-
-                    // The data in the z index is correct
-                    d.find({}, function (err, docs) {
-                      var doc0 = _.find(docs, function (doc) { return doc._id === 'aaa'; })
-                        , doc1 = _.find(docs, function (doc) { return doc._id === newDoc1._id; })
-                        , doc2 = _.find(docs, function (doc) { return doc._id === newDoc2._id; })
-                        ;
-
-                      docs.length.should.equal(3);
-
-                      assert.deepEqual(doc0, { _id: "aaa", z: "1", a: 2, ages: [1, 5, 12], yes: 'yep' });
-                      assert.deepEqual(doc1, { _id: newDoc1._id, z: "12", yes: 'yes' });
-                      assert.deepEqual(doc2, { _id: newDoc2._id, z: "14", nope: 'nope' });
-
-                      done();
+                    d.ensureIndex({ fieldName: 'z' }, function(){
+                      d.indexes.z.fieldName.should.equal('z');
+                      d.indexes.z.unique.should.equal(false);
+                      d.indexes.z.sparse.should.equal(false);
+                      d.indexes.z.tree.getNumberOfKeys().should.equal(3);
+  
+                      // The pointers in the _id and z indexes are the same
+                      d.indexes.z.tree.search('1')[0].should.equal(d.indexes._id.getMatching('aaa')[0]);
+                      d.indexes.z.tree.search('12')[0].should.equal(d.indexes._id.getMatching(newDoc1._id)[0]);
+                      d.indexes.z.tree.search('14')[0].should.equal(d.indexes._id.getMatching(newDoc2._id)[0]);
+  
+                      // The data in the z index is correct
+                      d.find({}, function (err, docs) {
+                        var doc0 = _.find(docs, function (doc) { return doc._id === 'aaa'; })
+                          , doc1 = _.find(docs, function (doc) { return doc._id === newDoc1._id; })
+                          , doc2 = _.find(docs, function (doc) { return doc._id === newDoc2._id; })
+                          ;
+  
+                        docs.length.should.equal(3);
+  
+                        assert.deepEqual(doc0, { _id: "aaa", z: "1", a: 2, ages: [1, 5, 12], yes: 'yep' });
+                        assert.deepEqual(doc1, { _id: newDoc1._id, z: "12", yes: 'yes' });
+                        assert.deepEqual(doc2, { _id: newDoc2._id, z: "14", nope: 'nope' });
+  
+                        done();
+                      });
                     });
                   });
                 });
@@ -2130,17 +2129,18 @@ describe('Database', function () {
 
         d.getAllData().length.should.equal(0);
 
-        d.ensureIndex({ fieldName: 'z', unique: true });
-        d.indexes.z.tree.getNumberOfKeys().should.equal(0);
+        d.ensureIndex({ fieldName: 'z', unique: true }, function(){
+          d.indexes.z.tree.getNumberOfKeys().should.equal(0);
 
-        fs.writeFile(testDb, rawData, 'utf8', function () {
-          d.loadDatabase(function (err) {
-            err.errorType.should.equal('uniqueViolated');
-            err.key.should.equal("1");
-            d.getAllData().length.should.equal(0);
-            d.indexes.z.tree.getNumberOfKeys().should.equal(0);
-
-            done();
+          fs.writeFile(testDb, rawData, 'utf8', function () {
+            d.loadDatabase(function (err) {
+              err.errorType.should.equal('uniqueViolated');
+              err.key.should.equal("1");
+              d.getAllData().length.should.equal(0);
+              d.indexes.z.tree.getNumberOfKeys().should.equal(0);
+  
+              done();
+            });
           });
         });
       });
@@ -2187,40 +2187,43 @@ describe('Database', function () {
     describe('Indexing newly inserted documents', function () {
 
       it('Newly inserted documents are indexed', function (done) {
-        d.ensureIndex({ fieldName: 'z' });
-        d.indexes.z.tree.getNumberOfKeys().should.equal(0);
+        d.ensureIndex({ fieldName: 'z' }, function(){
+          d.indexes.z.tree.getNumberOfKeys().should.equal(0);
 
-        d.insert({ a: 2, z: 'yes' }, function (err, newDoc) {
-          d.indexes.z.tree.getNumberOfKeys().should.equal(1);
-          assert.deepEqual(d.indexes.z.getMatching('yes'), [newDoc]);
-
-          d.insert({ a: 5, z: 'nope' }, function (err, newDoc) {
-            d.indexes.z.tree.getNumberOfKeys().should.equal(2);
-            assert.deepEqual(d.indexes.z.getMatching('nope'), [newDoc]);
-
-            done();
-          });
+          d.insert({ a: 2, z: 'yes' }, function (err, newDoc) {
+            d.indexes.z.tree.getNumberOfKeys().should.equal(1);
+            assert.deepEqual(d.indexes.z.getMatching('yes'), [newDoc]);
+  
+            d.insert({ a: 5, z: 'nope' }, function (err, newDoc) {
+              d.indexes.z.tree.getNumberOfKeys().should.equal(2);
+              assert.deepEqual(d.indexes.z.getMatching('nope'), [newDoc]);
+  
+              done();
+            });
+          });          
         });
       });
 
       it('If multiple indexes are defined, the document is inserted in all of them', function (done) {
-        d.ensureIndex({ fieldName: 'z' });
-        d.ensureIndex({ fieldName: 'ya' });
-        d.indexes.z.tree.getNumberOfKeys().should.equal(0);
-
-        d.insert({ a: 2, z: 'yes', ya: 'indeed' }, function (err, newDoc) {
-          d.indexes.z.tree.getNumberOfKeys().should.equal(1);
-          d.indexes.ya.tree.getNumberOfKeys().should.equal(1);
-          assert.deepEqual(d.indexes.z.getMatching('yes'), [newDoc]);
-          assert.deepEqual(d.indexes.ya.getMatching('indeed'), [newDoc]);
-
-          d.insert({ a: 5, z: 'nope', ya: 'sure' }, function (err, newDoc2) {
-            d.indexes.z.tree.getNumberOfKeys().should.equal(2);
-            d.indexes.ya.tree.getNumberOfKeys().should.equal(2);
-            assert.deepEqual(d.indexes.z.getMatching('nope'), [newDoc2]);
-            assert.deepEqual(d.indexes.ya.getMatching('sure'), [newDoc2]);
-
-            done();
+        d.ensureIndex({ fieldName: 'z' }, function(){
+          d.ensureIndex({ fieldName: 'ya' }, function(){
+            d.indexes.z.tree.getNumberOfKeys().should.equal(0);
+  
+            d.insert({ a: 2, z: 'yes', ya: 'indeed' }, function (err, newDoc) {
+              d.indexes.z.tree.getNumberOfKeys().should.equal(1);
+              d.indexes.ya.tree.getNumberOfKeys().should.equal(1);
+              assert.deepEqual(d.indexes.z.getMatching('yes'), [newDoc]);
+              assert.deepEqual(d.indexes.ya.getMatching('indeed'), [newDoc]);
+    
+              d.insert({ a: 5, z: 'nope', ya: 'sure' }, function (err, newDoc2) {
+                d.indexes.z.tree.getNumberOfKeys().should.equal(2);
+                d.indexes.ya.tree.getNumberOfKeys().should.equal(2);
+                assert.deepEqual(d.indexes.z.getMatching('nope'), [newDoc2]);
+                assert.deepEqual(d.indexes.ya.getMatching('sure'), [newDoc2]);
+    
+                done();
+              });
+            });
           });
         });
       });

@@ -1,16 +1,14 @@
-var should = require('chai').should()
-  , assert = require('chai').assert
-  , testDb = 'workspace/test.db'
-  , fs = require('fs')
-  , path = require('path')
-  , _ = require('underscore')
-  , async = require('async')
-  , model = require('../lib/model')
-  , Datastore = require('../lib/datastore')
-  , Persistence = require('../lib/persistence')
-  , Cursor = require('../lib/cursor')
-  ;
+import fs from'fs';
+import path from 'path';
+import async from 'async';
+import _ from 'underscore';
+import {assert, should} from 'chai';
+import Datastore from '../lib/datastore.js';
+import Persistence from '../lib/persistence.js';
+import Cursor from '../lib/cursor.js';
+should();
 
+const testDb = 'workspace/test.db';
 
 describe('Cursor', function () {
   var d;

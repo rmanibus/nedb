@@ -1,11 +1,10 @@
-var fs = require('fs')
-  , child_process = require('child_process')
-  , async = require('async')
-  , Nedb = require('../lib/datastore')
-  , db = new Nedb({ filename: './workspace/openfds.db', autoload: true })
-  , N = 64   // Half the allowed file descriptors
-  , i, fds
-  ;
+import * as fs from'fs';
+import child_process from 'child_process';
+import async from 'async';
+import Nedb from '../lib/datastore.js';
+
+  var db = new Nedb({ filename: './workspace/openfds.db', autoload: true }), 
+  N = 64,i, fds;
 
 function multipleOpen (filename, N, callback) {
   async.whilst( function () { return i < N; }
