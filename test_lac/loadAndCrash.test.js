@@ -1,7 +1,7 @@
 /**
  * Load and modify part of fs to ensure writeFile will crash after writing 5000 bytes
  */
-import fs from'fs';
+import fs from "fs";
 import storage from "../lib/storage.js";
 
 function rethrow() {
@@ -9,33 +9,36 @@ function rethrow() {
   // is fairly slow to generate.
   if (DEBUG) {
     var backtrace = new Error();
-    return function(err) {
+    return function (err) {
       if (err) {
-        backtrace.stack = err.name + ': ' + err.message +
-                          backtrace.stack.substr(backtrace.name.length);
+        backtrace.stack =
+          err.name +
+          ": " +
+          err.message +
+          backtrace.stack.substr(backtrace.name.length);
         throw backtrace;
       }
     };
   }
 
-  return function(err) {
+  return function (err) {
     if (err) {
-      throw err;  // Forgot a callback but don't know where? Use NODE_DEBUG=fs
+      throw err; // Forgot a callback but don't know where? Use NODE_DEBUG=fs
     }
   };
 }
 
 function maybeCallback(cb) {
-  return typeof cb === 'function' ? cb : rethrow();
+  return typeof cb === "function" ? cb : rethrow();
 }
 
 function isFd(path) {
-  return (path >>> 0) === path;
+  return path >>> 0 === path;
 }
 
 function assertEncoding(encoding) {
   if (encoding && !Buffer.isEncoding(encoding)) {
-    throw new Error('Unknown encoding: ' + encoding);
+    throw new Error("Unknown encoding: " + encoding);
   }
 }
 
@@ -43,16 +46,18 @@ var onePassDone = false;
 function writeAll(fd, isUserFd, buffer, offset, length, position, callback_) {
   var callback = maybeCallback(arguments[arguments.length - 1]);
 
-  if (onePassDone) { process.exit(1); }   // Crash on purpose before rewrite done
-  var l = Math.min(5000, length);   // Force write by chunks of 5000 bytes to ensure data will be incomplete on crash
+  if (onePassDone) {
+    process.exit(1);
+  } // Crash on purpose before rewrite done
+  var l = Math.min(5000, length); // Force write by chunks of 5000 bytes to ensure data will be incomplete on crash
 
   // write(fd, buffer, offset, length, position, callback)
-  fs.write(fd, buffer, offset, l, position, function(writeErr, written) {
+  fs.write(fd, buffer, offset, l, position, function (writeErr, written) {
     if (writeErr) {
       if (isUserFd) {
         if (callback) callback(writeErr);
       } else {
-        fs.close(fd, function() {
+        fs.close(fd, function () {
           if (callback) callback(writeErr);
         });
       }
@@ -80,24 +85,24 @@ function writeFile(path, data, options, callback_) {
   console.log("write file");
   var callback = maybeCallback(arguments[arguments.length - 1]);
 
-  if (!options || typeof options === 'function') {
-    options = { encoding: 'utf8', mode: 438, flag: 'w' }; // Mode 438 == 0o666 (compatibility with older Node releases)
-  } else if (typeof options === 'string') {
-    options = { encoding: options, mode: 438, flag: 'w' }; // Mode 438 == 0o666 (compatibility with older Node releases)
-  } else if (typeof options !== 'object') {
+  if (!options || typeof options === "function") {
+    options = { encoding: "utf8", mode: 438, flag: "w" }; // Mode 438 == 0o666 (compatibility with older Node releases)
+  } else if (typeof options === "string") {
+    options = { encoding: options, mode: 438, flag: "w" }; // Mode 438 == 0o666 (compatibility with older Node releases)
+  } else if (typeof options !== "object") {
     throwOptionsError(options);
   }
 
   assertEncoding(options.encoding);
 
-  var flag = options.flag || 'w';
+  var flag = options.flag || "w";
 
   if (isFd(path)) {
     writeFd(path, true);
     return;
   }
 
-  fs.open(path, flag, options.mode, function(openErr, fd) {
+  fs.open(path, flag, options.mode, function (openErr, fd) {
     if (openErr) {
       if (callback) callback(openErr);
     } else {
@@ -106,17 +111,19 @@ function writeFile(path, data, options, callback_) {
   });
 
   function writeFd(fd, isUserFd) {
-    var buffer = (data instanceof Buffer) ? data : new Buffer.from('' + data,
-        options.encoding || 'utf8');
+    var buffer =
+      data instanceof Buffer
+        ? data
+        : new Buffer.from("" + data, options.encoding || "utf8");
     var position = /a/.test(flag) ? null : 0;
 
     writeAll(fd, isUserFd, buffer, 0, buffer.length, position, callback);
   }
-};
+}
 
 storage.writeFile = writeFile;
 
-import Datastore from '../lib/datastore.js';
+import Datastore from "../lib/datastore.js";
 
-const failingDb = new Datastore({ filename: 'workspace/lac.db' });
+const failingDb = new Datastore({ filename: "workspace/lac.db" });
 failingDb.loadDatabase();
