@@ -1,41 +1,41 @@
-import * as fs from'fs';
-import path from 'path';
-import _ from 'underscore';
-import async from 'async';
-import {assert, should} from 'chai';
-import Datastore from '../lib/datastore.js';
-import Persistence from '../lib/persistence.js';
+import * as fs from "fs";
+import path from "path";
+import _ from "underscore";
+import async from "async";
+import { assert, should } from "chai";
+import Datastore from "../lib/datastore.js";
+import Persistence from "../lib/persistence.js";
 should();
-const testDb = 'workspace/test.db';
+const testDb = "workspace/test.db";
 // Test that even if a callback throws an exception, the next DB operations will still be executed
 // We prevent Mocha from catching the exception we throw on purpose by remembering all current handlers, remove them and register them back after test ends
-function testThrowInCallback (d, done) {
-  var currentUncaughtExceptionHandlers = process.listeners('uncaughtException');
+function testThrowInCallback(d, done) {
+  var currentUncaughtExceptionHandlers = process.listeners("uncaughtException");
 
-  process.removeAllListeners('uncaughtException');
+  process.removeAllListeners("uncaughtException");
 
-  process.on('uncaughtException', function (err) {
+  process.on("uncaughtException", function (err) {
     // Do nothing with the error which is only there to test we stay on track
   });
 
   d.find({}, function (err) {
     process.nextTick(function () {
       d.insert({ bar: 1 }, function (err) {
-        process.removeAllListeners('uncaughtException');
+        process.removeAllListeners("uncaughtException");
         for (var i = 0; i < currentUncaughtExceptionHandlers.length; i += 1) {
-          process.on('uncaughtException', currentUncaughtExceptionHandlers[i]);
+          process.on("uncaughtException", currentUncaughtExceptionHandlers[i]);
         }
 
         done();
       });
     });
 
-    throw new Error('Some error');
+    throw new Error("Some error");
   });
 }
 
 // Test that if the callback is falsy, the next DB operations will still be executed
-function testFalsyCallback (d, done) {
+function testFalsyCallback(d, done) {
   d.insert({ a: 1 }, null);
   process.nextTick(function () {
     d.update({ a: 1 }, { a: 2 }, {}, null);
@@ -56,12 +56,12 @@ function testFalsyCallback (d, done) {
 
 // Test that operations are executed in the right order
 // We prevent Mocha from catching the exception we throw on purpose by remembering all current handlers, remove them and register them back after test ends
-function testRightOrder (d, done) {
-  var currentUncaughtExceptionHandlers = process.listeners('uncaughtException');
+function testRightOrder(d, done) {
+  var currentUncaughtExceptionHandlers = process.listeners("uncaughtException");
 
-  process.removeAllListeners('uncaughtException');
+  process.removeAllListeners("uncaughtException");
 
-  process.on('uncaughtException', function (err) {
+  process.on("uncaughtException", function (err) {
     // Do nothing with the error which is only there to test we stay on track
   });
 
@@ -78,9 +78,16 @@ function testRightOrder (d, done) {
               d.find({}, function (err, docs) {
                 docs[0].a.should.equal(3);
 
-                process.removeAllListeners('uncaughtException');
-                for (var i = 0; i < currentUncaughtExceptionHandlers.length; i += 1) {
-                  process.on('uncaughtException', currentUncaughtExceptionHandlers[i]);
+                process.removeAllListeners("uncaughtException");
+                for (
+                  var i = 0;
+                  i < currentUncaughtExceptionHandlers.length;
+                  i += 1
+                ) {
+                  process.on(
+                    "uncaughtException",
+                    currentUncaughtExceptionHandlers[i]
+                  );
                 }
 
                 done();
@@ -88,7 +95,7 @@ function testRightOrder (d, done) {
             });
           });
 
-          throw new Error('Some error');
+          throw new Error("Some error");
         });
       });
     });
@@ -99,19 +106,18 @@ function testRightOrder (d, done) {
 // is meant to address the deprecation warning:
 // (node) warning: Recursive process.nextTick detected. This will break in the next version of node. Please use setImmediate for recursive deferral.
 // see
-var testEventLoopStarvation = function(d, done){
-   var times = 1001;
-   var i = 0;
-   while ( i <times) {
-      i++;
-     d.find({"bogus": "search"}, function (err, docs) {
-     });
-   }
-   done();
+var testEventLoopStarvation = function (d, done) {
+  var times = 1001;
+  var i = 0;
+  while (i < times) {
+    i++;
+    d.find({ bogus: "search" }, function (err, docs) {});
+  }
+  done();
 };
 
 // Test that operations are executed in the right order even with no callback
-function testExecutorWorksWithoutCallback (d, done) {
+function testExecutorWorksWithoutCallback(d, done) {
   d.insert({ a: 1 });
   d.insert({ a: 2 }, false);
   d.find({}, function (err, docs) {
@@ -120,10 +126,8 @@ function testExecutorWorksWithoutCallback (d, done) {
   });
 }
 
-
-describe('Executor', function () {
-
-  describe('With persistent database', function () {
+describe("Executor", function () {
+  describe("With persistent database", function () {
     var d;
 
     beforeEach(function (done) {
@@ -131,50 +135,56 @@ describe('Executor', function () {
       d.filename.should.equal(testDb);
       d.inMemoryOnly.should.equal(false);
 
-      async.waterfall([
-        function (cb) {
-          Persistence.ensureDirectoryExists(path.dirname(testDb), function () {
-            fs.exists(testDb, function (exists) {
-              if (exists) {
-                fs.unlink(testDb, cb);
-              } else { return cb(); }
+      async.waterfall(
+        [
+          function (cb) {
+            Persistence.ensureDirectoryExists(
+              path.dirname(testDb),
+              function () {
+                fs.exists(testDb, function (exists) {
+                  if (exists) {
+                    fs.unlink(testDb, cb);
+                  } else {
+                    return cb();
+                  }
+                });
+              }
+            );
+          },
+          function (cb) {
+            d.loadDatabase(function (err) {
+              assert.isNull(err);
+              d.getAllData().length.should.equal(0);
+              return cb();
             });
-          });
-        }
-      , function (cb) {
-          d.loadDatabase(function (err) {
-            assert.isNull(err);
-            d.getAllData().length.should.equal(0);
-            return cb();
-          });
-        }
-      ], done);
+          },
+        ],
+        done
+      );
     });
 
-    it('A throw in a callback doesnt prevent execution of next operations', function(done) {
+    it("A throw in a callback doesnt prevent execution of next operations", function (done) {
       testThrowInCallback(d, done);
     });
 
-    it('A falsy callback doesnt prevent execution of next operations', function(done) {
+    it("A falsy callback doesnt prevent execution of next operations", function (done) {
       testFalsyCallback(d, done);
     });
 
-    it('Operations are executed in the right order', function(done) {
+    it("Operations are executed in the right order", function (done) {
       testRightOrder(d, done);
     });
 
-    it('Does not starve event loop and raise warning when more than 1000 callbacks are in queue', function(done){
+    it("Does not starve event loop and raise warning when more than 1000 callbacks are in queue", function (done) {
       testEventLoopStarvation(d, done);
     });
 
-    it('Works in the right order even with no supplied callback', function(done){
+    it("Works in the right order even with no supplied callback", function (done) {
       testExecutorWorksWithoutCallback(d, done);
     });
+  }); // ==== End of 'With persistent database' ====
 
-  });   // ==== End of 'With persistent database' ====
-
-
-  describe('With non persistent database', function () {
+  describe("With non persistent database", function () {
     var d;
 
     beforeEach(function (done) {
@@ -188,22 +198,20 @@ describe('Executor', function () {
       });
     });
 
-    it('A throw in a callback doesnt prevent execution of next operations', function(done) {
+    it("A throw in a callback doesnt prevent execution of next operations", function (done) {
       testThrowInCallback(d, done);
     });
 
-    it('A falsy callback doesnt prevent execution of next operations', function(done) {
+    it("A falsy callback doesnt prevent execution of next operations", function (done) {
       testFalsyCallback(d, done);
     });
 
-    it('Operations are executed in the right order', function(done) {
+    it("Operations are executed in the right order", function (done) {
       testRightOrder(d, done);
     });
 
-    it('Works in the right order even with no supplied callback', function(done){
+    it("Works in the right order even with no supplied callback", function (done) {
       testExecutorWorksWithoutCallback(d, done);
     });
-
-  });   // ==== End of 'With non persistent database' ====
-
+  }); // ==== End of 'With non persistent database' ====
 });
