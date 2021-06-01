@@ -2157,8 +2157,8 @@ describe("Model", () => {
           .match(
             { a: 4 },
             {
-              $where() {
-                return this.a === 4;
+              $where(obj) {
+                return obj.a === 4;
               },
             }
           )
@@ -2167,8 +2167,8 @@ describe("Model", () => {
           .match(
             { a: 4 },
             {
-              $where() {
-                return this.a === 5;
+              $where(obj) {
+                return obj.a === 5;
               },
             }
           )
@@ -2195,14 +2195,13 @@ describe("Model", () => {
       });
 
       it("Should be able to do the complex matching it must be used for", () => {
-        // eslint-disable-next-line func-names
-        const checkEmail = function () {
-          if (!this.firstName || !this.lastName) {
+        const checkEmail = (obj) => {
+          if (!obj.firstName || !obj.lastName) {
             return false;
           }
           return (
-            `${this.firstName.toLowerCase()}.${this.lastName.toLowerCase()}@gmail.com` ===
-            this.email
+            `${obj.firstName.toLowerCase()}.${obj.lastName.toLowerCase()}@gmail.com` ===
+            obj.email
           );
         };
         model
